@@ -24,7 +24,7 @@ describe("Test User class", function () {
       password: "password",
       first_name: "Joel",
       last_name: "Burton",
-      phone: "+14155551212",
+      phone: "+14155551212,"
     });
 
     expect(u.username).toBe("joel");

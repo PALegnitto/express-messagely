@@ -5,6 +5,7 @@ const router = new Router();
 const User= require("../models/user.js");
 const jwt = require("jsonwebtoken");
 const {SECRET_KEY} = require("../config");
+const {UnauthorizedError} = require("../expressError")
 
 /** POST /login: {username, password} => {token} */
 router.post("/login", async function (req, res, next) {
@@ -30,16 +31,19 @@ router.post("/login", async function (req, res, next) {
  * {username, password, first_name, last_name, phone} => {token}.
  */
 
-router.post('/register', function (req, res, next) {
+router.post('/register', async function (req, res, next) {
 
-  const {username, password, first_name, last_name, phone} = req.body;
-  const newUser = User.register(username,password,first_name,last_name);
+  // const {username, password, first_name, last_name, phone} = req.body;
+  //don't need to destructure, just pass in req.body below
 
-  const loginStatus =  await User.authenticate(username,password);
+  const { username } = await User.register(req.body);
+  console.log("username", username)
+  // const username = newUser.username
 
-  if (newUser && loginStatus){
+  // const loginStatus =  await User.authenticate(username,password);
+
+  if (username){
     const token = jwt.sign({ username }, SECRET_KEY);
-
     return res.json({ token });
   }
 

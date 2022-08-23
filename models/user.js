@@ -142,22 +142,6 @@ class User {
     //unneeded because should be job of another function to check validity
     // if (!message) throw new NotFoundError(`No such message: ${message.id}`);
 
-    // TODO: map messages to return
-    // let messageArr = []
-    // for (let message of messages){
-    //   messageArr.push({
-    //     id: message.id,
-    //     to_user: {
-    //       username: message.to_username,
-    //       first_name: message.first_name,
-    //       last_name: message.last_name,
-    //       phone: message.phone
-    //     },
-    //     body: message.body,
-    //     sent_at: message.sent_at,
-    //     read_at: message.read_at
-    //   })
-    // }
 
     return messages.map(message => ({
       id: message.id,
@@ -173,7 +157,6 @@ class User {
     })
     );
   }
-
 
 
   /** Return messages to this user.

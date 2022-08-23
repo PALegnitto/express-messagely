@@ -16,12 +16,10 @@ class User {
 
   static async register({ username, password, first_name, last_name, phone }) {
 
-    // console.log("username", arguments[0].username);
-    // const { username, password, first_name, last_name, phone } = arguments[0];
-
-
     const hashedPassword = await bcrypt.hash(
-      password, BCRYPT_WORK_FACTOR);
+      password,
+      BCRYPT_WORK_FACTOR
+    );
 
     const result = await db.query(
       `INSERT INTO users (username,
@@ -51,13 +49,15 @@ class User {
 
     const user = result.rows[0];
 
-    if (user) {
-      if (await bcrypt.compare(password, user.password) === true) {
-        return true;
-      } else {
-        return false;
-      }
-    }
+    return user && await bcrypt.compare(password, user.password) === true;
+
+    // if (user) {
+    //   if (await bcrypt.compare(password, user.password) === true) {
+    //     return true;
+    //   } else {
+    //     return false;
+    //   }
+    // }
   }
 
   /** Update last_login_at for user */
@@ -84,7 +84,8 @@ class User {
   static async all() {
     const result = await db.query(
       `SELECT username, first_name, last_name
-      FROM users`);
+      FROM users
+      ORDER BY username`);
 
     const users = result.rows;
     return users;
@@ -106,6 +107,8 @@ class User {
       WHERE username = $1`,
       [username]);
     const user = result.rows[0];
+
+    if (!user) throw new NotFoundError(`User${username} not found`);
 
     return user;
   }
@@ -134,11 +137,29 @@ class User {
       WHERE m.from_username = $1`,
       [username]);
 
-    let message = result.rows[0];
+    let messages = result.rows;
 
-    if (!message) throw new NotFoundError(`No such message: ${message.id}`);
+    //unneeded because should be job of another function to check validity
+    // if (!message) throw new NotFoundError(`No such message: ${message.id}`);
 
-    return [{
+    // TODO: map messages to return
+    // let messageArr = []
+    // for (let message of messages){
+    //   messageArr.push({
+    //     id: message.id,
+    //     to_user: {
+    //       username: message.to_username,
+    //       first_name: message.first_name,
+    //       last_name: message.last_name,
+    //       phone: message.phone
+    //     },
+    //     body: message.body,
+    //     sent_at: message.sent_at,
+    //     read_at: message.read_at
+    //   })
+    // }
+
+    return messages.map(message => ({
       id: message.id,
       to_user: {
         username: message.to_username,
@@ -149,8 +170,10 @@ class User {
       body: message.body,
       sent_at: message.sent_at,
       read_at: message.read_at
-    }];
+    })
+    );
   }
+
 
 
   /** Return messages to this user.
@@ -177,22 +200,22 @@ class User {
       WHERE m.to_username = $1`,
       [username]);
 
-    let message = result.rows[0];
+    let messages = result.rows;
 
-    if (!message) throw new NotFoundError(`No such message: ${message.id}`);
-
-    return [{
-      id: message.id,
-      from_user: {
-        username: message.from_username,
-        first_name: message.first_name,
-        last_name: message.last_name,
-        phone: message.phone
-      },
-      body: message.body,
-      sent_at: message.sent_at,
-      read_at: message.read_at
-    }];
+    return messages.map(message => (
+      {
+        id: message.id,
+        from_user: {
+          username: message.from_username,
+          first_name: message.first_name,
+          last_name: message.last_name,
+          phone: message.phone
+        },
+        body: message.body,
+        sent_at: message.sent_at,
+        read_at: message.read_at
+      })
+    );
   }
 }
 
